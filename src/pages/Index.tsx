@@ -57,13 +57,23 @@ const Index = () => {
             Lộ trình dinh dưỡng được cá nhân hóa hoàn toàn, giúp bạn đạt mục tiêu một cách khoa học và bền vững
           </p>
           
-          <Button 
-            size="lg" 
-            onClick={() => navigate('/survey')}
-            className="bg-gradient-primary text-lg px-8 py-6 shadow-large hover:shadow-xl transition-smooth"
-          >
-            Bắt đầu ngay - Miễn phí
-          </Button>
+          <div className="flex gap-4 justify-center">
+            <Button 
+              size="lg" 
+              onClick={() => navigate('/survey')}
+              className="bg-gradient-primary text-lg px-8 py-6 shadow-large hover:shadow-xl transition-smooth"
+            >
+              Bắt đầu ngay - Miễn phí
+            </Button>
+            <Button 
+              size="lg"
+              variant="outline"
+              onClick={() => navigate('/auth')}
+              className="text-lg px-8 py-6"
+            >
+              Đăng nhập
+            </Button>
+          </div>
           
           <p className="text-sm text-muted-foreground mt-4">
             ✨ Không cần thẻ tín dụng • Kết quả ngay lập tức
