@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Loader2, RefreshCw } from "lucide-react";
@@ -31,13 +31,10 @@ const MealSuggestions = ({ surveyData, currentDay }: MealSuggestionsProps) => {
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestions | null>(null);
 
-  // Auto-generate suggestions when day changes
-  const lastDayRef = useState(currentDay);
-  
-  if (lastDayRef[0] !== currentDay) {
-    lastDayRef[0] = currentDay;
-    setSuggestions(null); // Reset suggestions for new day
-  }
+  // Reset suggestions when day changes
+  useEffect(() => {
+    setSuggestions(null);
+  }, [currentDay]);
 
   const generateSuggestions = async () => {
     setLoading(true);
