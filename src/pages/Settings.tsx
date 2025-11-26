@@ -16,7 +16,6 @@ const Settings = () => {
   const [saving, setSaving] = useState(false);
   const [emailEnabled, setEmailEnabled] = useState(false);
   const [notificationEmail, setNotificationEmail] = useState("");
-  const [notificationTime, setNotificationTime] = useState("08:00");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -33,7 +32,7 @@ const Settings = () => {
 
       const { data: profile, error } = await supabase
         .from("profiles")
-        .select("email_notifications_enabled, notification_email, notification_time")
+        .select("email_notifications_enabled, notification_email")
         .eq("id", session.user.id)
         .maybeSingle();
 
@@ -42,7 +41,6 @@ const Settings = () => {
       } else if (profile) {
         setEmailEnabled(profile.email_notifications_enabled || false);
         setNotificationEmail(profile.notification_email || session.user.email || "");
-        setNotificationTime(profile.notification_time?.slice(0, 5) || "08:00");
       } else {
         setNotificationEmail(session.user.email || "");
       }
@@ -64,7 +62,6 @@ const Settings = () => {
         .update({
           email_notifications_enabled: emailEnabled,
           notification_email: notificationEmail,
-          notification_time: notificationTime + ":00",
         })
         .eq("id", user.id);
 
@@ -121,9 +118,9 @@ const Settings = () => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <Label>Gửi thực đơn hàng ngày</Label>
+                <Label>Nhận email thực đơn</Label>
                 <p className="text-sm text-muted-foreground">
-                  Nhận email với thực đơn được tạo tự động mỗi ngày
+                  Nhận email tự động khi tạo thực đơn mới hoặc mở khóa ngày mới
                 </p>
               </div>
               <Switch
@@ -148,24 +145,14 @@ const Settings = () => {
                   </p>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="time">Giờ gửi email</Label>
-                  <Input
-                    id="time"
-                    type="time"
-                    value={notificationTime}
-                    onChange={(e) => setNotificationTime(e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Email sẽ được gửi tự động vào giờ này mỗi ngày
-                  </p>
-                </div>
-
                 <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
                   <p className="text-sm">
-                    <strong>💡 Lưu ý:</strong> Thực đơn sẽ được tự động tạo và gửi mỗi ngày. 
-                    Nếu bạn không hài lòng với món ăn, có thể chat với AI để thay đổi.
+                    <strong>💡 Lưu ý:</strong> Email sẽ được gửi tự động khi:
                   </p>
+                  <ul className="text-sm mt-2 space-y-1 ml-4">
+                    <li>• Bạn tạo thực đơn mới từ gợi ý AI</li>
+                    <li>• Bạn hoàn thành và mở khóa ngày mới</li>
+                  </ul>
                 </div>
               </>
             )}
@@ -194,8 +181,8 @@ const Settings = () => {
         <Card className="p-6 shadow-medium">
           <h3 className="font-bold mb-3">Cách hoạt động</h3>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>✅ Thực đơn được tạo tự động mỗi ngày dựa trên thông tin của bạn</li>
-            <li>📧 Email sẽ được gửi vào giờ bạn chọn</li>
+            <li>✅ Bật tính năng nhận email để được thông báo ngay lập tức</li>
+            <li>📧 Email sẽ được gửi khi bạn tạo thực đơn mới hoặc mở khóa ngày mới</li>
             <li>🤖 Sử dụng AI chat để thay đổi món ăn nếu cần</li>
             <li>💾 Tất cả thực đơn được lưu lại để xem lại sau</li>
           </ul>
