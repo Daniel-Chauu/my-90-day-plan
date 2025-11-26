@@ -89,6 +89,21 @@ const MealSuggestions = ({ surveyData, currentDay }: MealSuggestionsProps) => {
           toast.error('Không thể lưu gợi ý vào database');
         } else {
           toast.success('Đã tạo và lưu gợi ý món ăn thành công!');
+          
+          // Send email with meal suggestions
+          try {
+            await supabase.functions.invoke('send-meal-email', {
+              body: { 
+                userId, 
+                dayNumber: currentDay, 
+                suggestions: data 
+              }
+            });
+            toast.success('Đã gửi thực đơn qua email!');
+          } catch (emailErr) {
+            console.error('Email error:', emailErr);
+            // Don't show error toast for email, it's not critical
+          }
         }
       } catch (saveErr) {
         console.error('Save error:', saveErr);

@@ -134,6 +134,29 @@ const Dashboard = () => {
         title: "🎉 Chúc mừng!",
         description: `Bạn đã hoàn thành ngày ${currentDay}! Hãy tiếp tục phấn đấu!`,
       });
+
+      // Send email for next day's meal plan
+      try {
+        const { data: nextDayMeals } = await supabase
+          .from('meal_suggestions')
+          .select('suggestions')
+          .eq('user_id', user.id)
+          .eq('day_number', nextDay)
+          .maybeSingle();
+
+        if (nextDayMeals?.suggestions) {
+          await supabase.functions.invoke('send-meal-email', {
+            body: { 
+              userId: user.id, 
+              dayNumber: nextDay, 
+              suggestions: nextDayMeals.suggestions 
+            }
+          });
+        }
+      } catch (emailErr) {
+        console.error('Email error:', emailErr);
+        // Don't block the flow if email fails
+      }
     } catch (error) {
       console.error("Error:", error);
       toast({
