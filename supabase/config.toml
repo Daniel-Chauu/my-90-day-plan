@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.chat-meal-advice]
 verify_jwt = false
+
+[functions.send-daily-meals]
+verify_jwt = false

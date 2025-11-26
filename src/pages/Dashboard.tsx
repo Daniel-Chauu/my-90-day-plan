@@ -181,10 +181,15 @@ const Dashboard = () => {
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-4xl font-bold text-primary">Dashboard của tôi</h1>
-          <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Đăng xuất
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate("/settings")}>
+              Cài đặt
+            </Button>
+            <Button variant="outline" onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Đăng xuất
+            </Button>
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
