@@ -58,12 +58,16 @@ export type Database = {
           created_at: string
           current_day: number | null
           email: string
+          email_notifications_enabled: boolean | null
           gender: string | null
           goal_type: string | null
           health_issues: string[] | null
           height: number | null
           id: string
           last_active_date: string | null
+          last_email_sent_date: string | null
+          notification_email: string | null
+          notification_time: string | null
           streak_days: number | null
           updated_at: string
           weight: number | null
@@ -76,12 +80,16 @@ export type Database = {
           created_at?: string
           current_day?: number | null
           email: string
+          email_notifications_enabled?: boolean | null
           gender?: string | null
           goal_type?: string | null
           health_issues?: string[] | null
           height?: number | null
           id: string
           last_active_date?: string | null
+          last_email_sent_date?: string | null
+          notification_email?: string | null
+          notification_time?: string | null
           streak_days?: number | null
           updated_at?: string
           weight?: number | null
@@ -94,12 +102,16 @@ export type Database = {
           created_at?: string
           current_day?: number | null
           email?: string
+          email_notifications_enabled?: boolean | null
           gender?: string | null
           goal_type?: string | null
           health_issues?: string[] | null
           height?: number | null
           id?: string
           last_active_date?: string | null
+          last_email_sent_date?: string | null
+          notification_email?: string | null
+          notification_time?: string | null
           streak_days?: number | null
           updated_at?: string
           weight?: number | null

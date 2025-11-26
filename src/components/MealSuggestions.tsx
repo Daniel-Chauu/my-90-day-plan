@@ -55,17 +55,17 @@ const MealSuggestions = ({ surveyData, currentDay }: MealSuggestionsProps) => {
           .eq('day_number', currentDay)
           .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') { // PGRST116 = no rows
+        if (error && error.code !== 'PGRST116') {
           console.error('Error loading suggestions:', error);
-          toast.error('Không thể tải gợi ý đã lưu');
           return;
         }
 
         if (data) {
           setSuggestions(data.suggestions as Suggestions);
-          toast.success('Đã tải gợi ý đã lưu');
         } else {
-          setSuggestions(null);
+          // Auto-generate if not exists
+          console.log('No saved suggestions, auto-generating...');
+          await generateSuggestions();
         }
       } catch (err) {
         console.error('Error:', err);
