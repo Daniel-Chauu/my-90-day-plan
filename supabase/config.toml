@@ -1,1 +1,4 @@
 project_id = "xsvoeygciztxzztmfeap"
+
+[functions.generate-meal-suggestions]
+verify_jwt = false

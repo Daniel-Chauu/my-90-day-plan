@@ -1,10 +1,24 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, ChevronLeft, ChevronRight, Apple, Flame } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import MealSuggestions from "@/components/MealSuggestions";
+
+// Mock survey data - in production this would come from user profile/database
+const mockSurveyData = {
+  weight: "70",
+  height: "170",
+  age: "28",
+  gender: "male",
+  activityLevel: "moderate",
+  allergies: [],
+  healthIssues: [],
+  goal: "lose"
+};
 
 const Dashboard = () => {
   const [currentWeek, setCurrentWeek] = useState(1);
+  const [currentDay, setCurrentDay] = useState(7);
   const totalWeeks = 13; // 90 days ≈ 13 weeks
 
   const sampleMeals = [
@@ -90,23 +104,10 @@ const Dashboard = () => {
         </Card>
 
         <div className="grid md:grid-cols-2 gap-6">
-          <Card className="p-6 shadow-medium">
-            <h3 className="text-xl font-bold mb-4">Thực đơn hôm nay</h3>
-            <div className="space-y-3">
-              {sampleMeals.map((meal, idx) => (
-                <div key={idx} className="flex justify-between items-center p-3 bg-muted rounded-lg">
-                  <div>
-                    <p className="font-semibold">{meal.name}</p>
-                    <p className="text-sm text-muted-foreground">{meal.time}</p>
-                  </div>
-                  <p className="font-bold text-primary">{meal.calories} kcal</p>
-                </div>
-              ))}
-            </div>
-          </Card>
+          <MealSuggestions surveyData={mockSurveyData} currentDay={currentDay} />
 
           <Card className="p-6 shadow-medium">
-            <h3 className="text-xl font-bold mb-4">Gợi ý hôm nay</h3>
+            <h3 className="text-xl font-bold mb-4">Lời khuyên hôm nay</h3>
             <div className="space-y-3">
               <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
                 <p className="font-semibold mb-1">💧 Uống đủ nước</p>
