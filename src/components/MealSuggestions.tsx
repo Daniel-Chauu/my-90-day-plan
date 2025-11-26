@@ -117,26 +117,23 @@ const MealSuggestions = ({ surveyData, currentDay }: MealSuggestionsProps) => {
 
         if (error && error.code !== 'PGRST116') {
           console.error('Error loading suggestions:', error);
-          setLoading(false);
-          return;
         }
 
         if (data) {
           setSuggestions(data.suggestions as Suggestions);
-          setLoading(false);
         } else {
-          // Auto-generate if not exists
-          console.log('No saved suggestions, auto-generating...');
-          await generateSuggestions();
+          // Clear suggestions if no data found
+          setSuggestions(null);
         }
       } catch (err) {
         console.error('Error:', err);
+      } finally {
         setLoading(false);
       }
     };
 
     loadSavedSuggestions();
-  }, [currentDay, userId, generateSuggestions]);
+  }, [currentDay, userId]);
 
   return (
     <Card className="p-6 shadow-medium">
