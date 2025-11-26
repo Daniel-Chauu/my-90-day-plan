@@ -51,7 +51,7 @@ const MealSuggestions = ({ surveyData, currentDay }: MealSuggestionsProps) => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-meal-suggestions', {
-        body: { surveyData, currentDay }
+        body: { surveyData, currentDay, userId }
       });
 
       if (error) {
