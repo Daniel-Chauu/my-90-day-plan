@@ -61,9 +61,10 @@ const Dashboard = () => {
   }, [navigate]);
 
   const handleDayClick = (dayNumber: number) => {
-    // Chỉ cho phép click vào ngày hiện tại hoặc các ngày đã hoàn thành
+    // Chỉ cho phép click vào ngày hiện tại (tiến độ thực tế) hoặc các ngày đã hoàn thành
     const completedDays = profile?.completed_days || [];
-    const canAccess = dayNumber === currentDay || completedDays.includes(dayNumber);
+    const progressDay = profile?.current_day || 1;
+    const canAccess = dayNumber <= progressDay || completedDays.includes(dayNumber);
     
     if (!canAccess) {
       toast({
@@ -254,7 +255,8 @@ const Dashboard = () => {
               const dayNumber = (currentWeek - 1) * 7 + idx + 1;
               const isSelected = dayNumber === currentDay;
               const isCompleted = completedDays.includes(dayNumber);
-              const isLocked = dayNumber > currentDay && !isCompleted;
+              const progressDay = profile?.current_day || 1;
+              const isLocked = dayNumber > progressDay && !isCompleted;
               
               return (
                 <Card
