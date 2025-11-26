@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, ChevronLeft, ChevronRight, Loader2, LogOut, Apple, Flame, CheckCircle, Lock } from "lucide-react";
 import MealSuggestions from "@/components/MealSuggestions";
 import ChatWithAI from "@/components/ChatWithAI";
+import WeeklySurvey from "@/components/WeeklySurvey";
 import { useToast } from "@/hooks/use-toast";
 import type { User } from "@supabase/supabase-js";
 
@@ -17,6 +18,7 @@ const Dashboard = () => {
   const [profile, setProfile] = useState<any>(null);
   const [completingDay, setCompletingDay] = useState(false);
   const [currentMeals, setCurrentMeals] = useState<any[]>([]);
+  const [showWeeklySurvey, setShowWeeklySurvey] = useState(false);
   const totalWeeks = 13; // 90 days ≈ 13 weeks
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -44,6 +46,24 @@ const Dashboard = () => {
       } else if (profileData) {
         setProfile(profileData);
         setCurrentDay(profileData?.current_day || 1);
+
+        // Check if weekly survey is needed (every 7 days: 8, 15, 22, 29, 36, 43, 50, 57, 64, 71, 78, 85)
+        const currentDayNum = profileData?.current_day || 1;
+        if (currentDayNum > 1 && currentDayNum % 7 === 1) {
+          const weekNumber = Math.floor((currentDayNum - 1) / 7) + 1;
+          
+          // Check if survey already completed for this week
+          const { data: existingSurvey } = await supabase
+            .from("weekly_health_tracking")
+            .select("id")
+            .eq("user_id", session.user.id)
+            .eq("week_number", weekNumber)
+            .maybeSingle();
+
+          if (!existingSurvey) {
+            setShowWeeklySurvey(true);
+          }
+        }
       }
 
       setLoading(false);
@@ -199,9 +219,18 @@ const Dashboard = () => {
 
   const completedDays = profile?.completed_days || [];
   const isDayCompleted = completedDays.includes(currentDay);
+  const weekNumber = Math.floor((currentDay - 1) / 7) + 1;
 
   return (
     <div className="min-h-screen bg-gradient-hero py-8 px-4">
+      <WeeklySurvey
+        open={showWeeklySurvey}
+        onComplete={() => setShowWeeklySurvey(false)}
+        weekNumber={weekNumber}
+        userId={user?.id || ""}
+        currentWeight={profile?.weight || 70}
+        currentActivityLevel={profile?.activity_level || "moderate"}
+      />
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-4xl font-bold text-primary">Dashboard của tôi</h1>

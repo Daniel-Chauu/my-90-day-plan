@@ -11,11 +11,39 @@ serve(async (req) => {
   }
 
   try {
-    const { surveyData, currentDay } = await req.json();
+    const { surveyData, currentDay, userId } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
+    }
+
+    // Fetch latest weekly health tracking data if available
+    let weeklyHealthData = null;
+    if (userId && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+      try {
+        const weekNumber = Math.floor((currentDay - 1) / 7) + 1;
+        const response = await fetch(
+          `${SUPABASE_URL}/rest/v1/weekly_health_tracking?user_id=eq.${userId}&week_number=eq.${weekNumber}&order=created_at.desc&limit=1`,
+          {
+            headers: {
+              apikey: SUPABASE_SERVICE_ROLE_KEY,
+              Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+            },
+          }
+        );
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.length > 0) {
+            weeklyHealthData = data[0];
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching weekly health data:", err);
+      }
     }
 
     // Build context from survey data
@@ -63,16 +91,32 @@ Format trả về JSON:
   "dailyTip": "Lời khuyên dinh dưỡng cho ngày hôm nay"
 }`;
 
-    const userPrompt = `Thông tin người dùng:
+    // Build user prompt with weekly health data if available
+    const bodyFeelingMap: Record<string, string> = {
+      tired: "đang cảm thấy mệt mỏi, thiếu năng lượng",
+      normal: "cảm thấy bình thường",
+      energetic: "tràn đầy năng lượng",
+      stressed: "đang bị stress, căng thẳng"
+    };
+
+    let userPrompt = `Thông tin người dùng:
 - Cân nặng: ${surveyData.weight}kg, Chiều cao: ${surveyData.height}cm
 - Tuổi: ${surveyData.age}, Giới tính: ${surveyData.gender === 'male' ? 'Nam' : 'Nữ'}
 - Mức độ vận động: ${activityMap[surveyData.activityLevel]}
 - Mục tiêu: ${goalMap[surveyData.goal]}
 - Dị ứng: ${surveyData.allergies.length > 0 ? surveyData.allergies.join(', ') : 'Không có'}
 - Vấn đề sức khỏe: ${surveyData.healthIssues.length > 0 ? surveyData.healthIssues.join(', ') : 'Không có'}
-- Đang ở ngày ${currentDay}/90 của chương trình
+- Đang ở ngày ${currentDay}/90 của chương trình`;
 
-Hãy gợi ý 3 món ăn Việt Nam phù hợp cho ngày hôm nay.`;
+    if (weeklyHealthData) {
+      userPrompt += `
+- Cập nhật tuần này: Cân nặng ${weeklyHealthData.weight}kg, ${activityMap[weeklyHealthData.activity_level]}
+- Tình trạng cơ thể: ${bodyFeelingMap[weeklyHealthData.body_feeling] || weeklyHealthData.body_feeling}`;
+    }
+
+    userPrompt += `
+
+Hãy gợi ý 3 món ăn Việt Nam phù hợp cho ngày hôm nay, lưu ý điều chỉnh theo tình trạng cơ thể hiện tại.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

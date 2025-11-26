@@ -118,6 +118,39 @@ export type Database = {
         }
         Relationships: []
       }
+      weekly_health_tracking: {
+        Row: {
+          activity_level: string | null
+          body_feeling: string | null
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+          week_number: number
+          weight: number | null
+        }
+        Insert: {
+          activity_level?: string | null
+          body_feeling?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          week_number: number
+          weight?: number | null
+        }
+        Update: {
+          activity_level?: string | null
+          body_feeling?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          week_number?: number
+          weight?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
