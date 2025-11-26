@@ -30,13 +30,59 @@ type MealSuggestionsProps = {
 const MealSuggestions = ({ surveyData, currentDay }: MealSuggestionsProps) => {
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestions | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
-  // Reset suggestions when day changes
+  // Get user ID
   useEffect(() => {
-    setSuggestions(null);
-  }, [currentDay]);
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUserId(user?.id || null);
+    };
+    getUser();
+  }, []);
+
+  // Load saved suggestions when day changes
+  useEffect(() => {
+    const loadSavedSuggestions = async () => {
+      if (!userId) return;
+
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('meal_suggestions')
+          .select('suggestions')
+          .eq('user_id', userId)
+          .eq('day_number', currentDay)
+          .maybeSingle();
+
+        if (error && error.code !== 'PGRST116') { // PGRST116 = no rows
+          console.error('Error loading suggestions:', error);
+          toast.error('Không thể tải gợi ý đã lưu');
+          return;
+        }
+
+        if (data) {
+          setSuggestions(data.suggestions as Suggestions);
+          toast.success('Đã tải gợi ý đã lưu');
+        } else {
+          setSuggestions(null);
+        }
+      } catch (err) {
+        console.error('Error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSavedSuggestions();
+  }, [currentDay, userId]);
 
   const generateSuggestions = async () => {
+    if (!userId) {
+      toast.error('Vui lòng đăng nhập để tạo gợi ý');
+      return;
+    }
+
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-meal-suggestions', {
@@ -61,7 +107,28 @@ const MealSuggestions = ({ surveyData, currentDay }: MealSuggestionsProps) => {
       }
 
       setSuggestions(data);
-      toast.success('Đã tạo gợi ý món ăn thành công!');
+
+      // Save to database
+      try {
+        const { error: saveError } = await supabase
+          .from('meal_suggestions')
+          .upsert({
+            user_id: userId,
+            day_number: currentDay,
+            suggestions: data,
+          }, {
+            onConflict: 'user_id,day_number'
+          });
+
+        if (saveError) {
+          console.error('Error saving suggestions:', saveError);
+          toast.error('Không thể lưu gợi ý vào database');
+        } else {
+          toast.success('Đã tạo và lưu gợi ý món ăn thành công!');
+        }
+      } catch (saveErr) {
+        console.error('Save error:', saveErr);
+      }
     } catch (err) {
       console.error('Error generating suggestions:', err);
       toast.error('Có lỗi xảy ra. Vui lòng thử lại.');
@@ -100,7 +167,7 @@ const MealSuggestions = ({ surveyData, currentDay }: MealSuggestionsProps) => {
       {!suggestions && !loading && (
         <div className="text-center py-8">
           <p className="text-muted-foreground mb-4">
-            Nhấn nút để AI tạo thực đơn phù hợp với bạn
+            {userId ? 'Nhấn nút để AI tạo thực đơn phù hợp với bạn' : 'Vui lòng đăng nhập để tạo gợi ý'}
           </p>
         </div>
       )}
