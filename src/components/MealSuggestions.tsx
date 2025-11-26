@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Loader2, RefreshCw } from "lucide-react";
@@ -41,43 +41,7 @@ const MealSuggestions = ({ surveyData, currentDay }: MealSuggestionsProps) => {
     getUser();
   }, []);
 
-  // Load saved suggestions when day changes
-  useEffect(() => {
-    const loadSavedSuggestions = async () => {
-      if (!userId) return;
-
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('meal_suggestions')
-          .select('suggestions')
-          .eq('user_id', userId)
-          .eq('day_number', currentDay)
-          .maybeSingle();
-
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error loading suggestions:', error);
-          return;
-        }
-
-        if (data) {
-          setSuggestions(data.suggestions as Suggestions);
-        } else {
-          // Auto-generate if not exists
-          console.log('No saved suggestions, auto-generating...');
-          await generateSuggestions();
-        }
-      } catch (err) {
-        console.error('Error:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadSavedSuggestions();
-  }, [currentDay, userId]);
-
-  const generateSuggestions = async () => {
+  const generateSuggestions = useCallback(async () => {
     if (!userId) {
       toast.error('Vui lòng đăng nhập để tạo gợi ý');
       return;
@@ -135,7 +99,44 @@ const MealSuggestions = ({ surveyData, currentDay }: MealSuggestionsProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId, surveyData, currentDay]);
+
+  // Load saved suggestions when day changes
+  useEffect(() => {
+    const loadSavedSuggestions = async () => {
+      if (!userId) return;
+
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('meal_suggestions')
+          .select('suggestions')
+          .eq('user_id', userId)
+          .eq('day_number', currentDay)
+          .maybeSingle();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error loading suggestions:', error);
+          setLoading(false);
+          return;
+        }
+
+        if (data) {
+          setSuggestions(data.suggestions as Suggestions);
+          setLoading(false);
+        } else {
+          // Auto-generate if not exists
+          console.log('No saved suggestions, auto-generating...');
+          await generateSuggestions();
+        }
+      } catch (err) {
+        console.error('Error:', err);
+        setLoading(false);
+      }
+    };
+
+    loadSavedSuggestions();
+  }, [currentDay, userId, generateSuggestions]);
 
   return (
     <Card className="p-6 shadow-medium">
