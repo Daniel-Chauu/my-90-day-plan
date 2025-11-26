@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Loader2, RefreshCw } from "lucide-react";
+import { Sparkles, Loader2, RefreshCw, Repeat } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -31,6 +31,7 @@ const MealSuggestions = ({ surveyData, currentDay }: MealSuggestionsProps) => {
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestions | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [swappingIndex, setSwappingIndex] = useState<number | null>(null);
 
   // Get user ID
   useEffect(() => {
@@ -150,6 +151,76 @@ const MealSuggestions = ({ surveyData, currentDay }: MealSuggestionsProps) => {
     loadSavedSuggestions();
   }, [currentDay, userId]);
 
+  const swapMeal = useCallback(async (mealIndex: number) => {
+    if (!userId || !suggestions) {
+      toast.error('Không thể đổi món');
+      return;
+    }
+
+    setSwappingIndex(mealIndex);
+    try {
+      const currentMeal = suggestions.meals[mealIndex];
+      const mealType = currentMeal.time;
+
+      const { data, error } = await supabase.functions.invoke('swap-meal', {
+        body: { 
+          surveyData, 
+          currentMeal,
+          mealType
+        }
+      });
+
+      if (error) {
+        console.error('Swap error:', error);
+        if (error.message?.includes('429')) {
+          toast.error('Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau.');
+        } else if (error.message?.includes('402')) {
+          toast.error('Cần nạp thêm credits. Vui lòng liên hệ quản trị viên.');
+        } else {
+          toast.error('Có lỗi xảy ra. Vui lòng thử lại.');
+        }
+        return;
+      }
+
+      if (data?.error) {
+        toast.error(data.message || 'Có lỗi xảy ra');
+        return;
+      }
+
+      // Update suggestions with new meal
+      const newMeals = [...suggestions.meals];
+      newMeals[mealIndex] = data;
+      const updatedSuggestions = {
+        ...suggestions,
+        meals: newMeals
+      };
+      
+      setSuggestions(updatedSuggestions);
+
+      // Save updated suggestions to database
+      const { error: saveError } = await supabase
+        .from('meal_suggestions')
+        .update({
+          suggestions: updatedSuggestions,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId)
+        .eq('day_number', currentDay);
+
+      if (saveError) {
+        console.error('Error saving swapped meal:', saveError);
+        toast.error('Không thể lưu món mới');
+      } else {
+        toast.success('Đã đổi món thành công!');
+      }
+    } catch (err) {
+      console.error('Error swapping meal:', err);
+      toast.error('Có lỗi xảy ra. Vui lòng thử lại.');
+    } finally {
+      setSwappingIndex(null);
+    }
+  }, [userId, suggestions, surveyData, currentDay]);
+
   return (
     <Card className="p-6 shadow-medium">
       <div className="flex items-center justify-between mb-4">
@@ -205,7 +276,7 @@ const MealSuggestions = ({ surveyData, currentDay }: MealSuggestionsProps) => {
             {suggestions.meals.map((meal, idx) => (
               <Card key={idx} className="p-4 hover:shadow-medium transition-smooth">
                 <div className="flex justify-between items-start mb-2">
-                  <div>
+                  <div className="flex-1">
                     <h4 className="font-semibold text-lg">{meal.name}</h4>
                     <p className="text-sm text-muted-foreground">{meal.time}</p>
                   </div>
@@ -234,6 +305,28 @@ const MealSuggestions = ({ surveyData, currentDay }: MealSuggestionsProps) => {
                   <div>
                     <p className="text-xs font-semibold text-muted-foreground mb-1">Cách làm:</p>
                     <p className="text-xs text-muted-foreground">{meal.preparation}</p>
+                  </div>
+
+                  <div className="flex justify-end pt-2">
+                    <Button
+                      onClick={() => swapMeal(idx)}
+                      disabled={swappingIndex === idx}
+                      size="sm"
+                      variant="outline"
+                      className="gap-2"
+                    >
+                      {swappingIndex === idx ? (
+                        <>
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Đang đổi...
+                        </>
+                      ) : (
+                        <>
+                          <Repeat className="h-3 w-3" />
+                          Đổi món
+                        </>
+                      )}
+                    </Button>
                   </div>
                 </div>
               </Card>
