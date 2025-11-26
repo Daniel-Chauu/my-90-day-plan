@@ -18,14 +18,13 @@ const mockSurveyData = {
 
 const Dashboard = () => {
   const [currentWeek, setCurrentWeek] = useState(1);
-  const [currentDay, setCurrentDay] = useState(7);
+  const [currentDay, setCurrentDay] = useState(1);
   const totalWeeks = 13; // 90 days ≈ 13 weeks
 
-  const sampleMeals = [
-    { name: "Yến mạch chuối", calories: 350, time: "Sáng" },
-    { name: "Ức gà xào rau củ", calories: 450, time: "Trưa" },
-    { name: "Cá hồi nướng salad", calories: 500, time: "Tối" },
-  ];
+  const handleDayClick = (dayIndex: number) => {
+    const day = (currentWeek - 1) * 7 + dayIndex + 1;
+    setCurrentDay(day);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-hero py-8 px-4">
@@ -41,9 +40,9 @@ const Dashboard = () => {
               <Calendar className="h-6 w-6 text-primary" />
               <h3 className="font-semibold">Tiến độ</h3>
             </div>
-            <p className="text-3xl font-bold text-primary mb-2">Ngày 7/90</p>
+            <p className="text-3xl font-bold text-primary mb-2">Ngày {currentDay}/90</p>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-primary" style={{ width: '7.8%' }} />
+              <div className="h-full bg-gradient-primary" style={{ width: `${(currentDay / 90) * 100}%` }} />
             </div>
           </Card>
 
@@ -90,16 +89,23 @@ const Dashboard = () => {
           </div>
 
           <div className="grid md:grid-cols-7 gap-3">
-            {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((day, idx) => (
-              <Card
-                key={idx}
-                className="p-4 cursor-pointer hover:border-primary transition-smooth text-center"
-              >
-                <p className="font-semibold mb-2">{day}</p>
-                <p className="text-sm text-muted-foreground">Ngày {(currentWeek - 1) * 7 + idx + 1}</p>
-                <div className="mt-2 h-2 bg-primary/20 rounded-full" />
-              </Card>
-            ))}
+            {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((day, idx) => {
+              const dayNumber = (currentWeek - 1) * 7 + idx + 1;
+              const isSelected = dayNumber === currentDay;
+              return (
+                <Card
+                  key={idx}
+                  onClick={() => handleDayClick(idx)}
+                  className={`p-4 cursor-pointer hover:border-primary transition-smooth text-center ${
+                    isSelected ? 'border-primary bg-primary/5' : ''
+                  }`}
+                >
+                  <p className="font-semibold mb-2">{day}</p>
+                  <p className="text-sm text-muted-foreground">Ngày {dayNumber}</p>
+                  <div className={`mt-2 h-2 rounded-full ${isSelected ? 'bg-gradient-primary' : 'bg-primary/20'}`} />
+                </Card>
+              );
+            })}
           </div>
         </Card>
 
