@@ -14,7 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          activity_level: string | null
+          age: number | null
+          allergies: string[] | null
+          completed_days: number[] | null
+          created_at: string
+          current_day: number | null
+          email: string
+          gender: string | null
+          goal_type: string | null
+          health_issues: string[] | null
+          height: number | null
+          id: string
+          last_active_date: string | null
+          streak_days: number | null
+          updated_at: string
+          weight: number | null
+        }
+        Insert: {
+          activity_level?: string | null
+          age?: number | null
+          allergies?: string[] | null
+          completed_days?: number[] | null
+          created_at?: string
+          current_day?: number | null
+          email: string
+          gender?: string | null
+          goal_type?: string | null
+          health_issues?: string[] | null
+          height?: number | null
+          id: string
+          last_active_date?: string | null
+          streak_days?: number | null
+          updated_at?: string
+          weight?: number | null
+        }
+        Update: {
+          activity_level?: string | null
+          age?: number | null
+          allergies?: string[] | null
+          completed_days?: number[] | null
+          created_at?: string
+          current_day?: number | null
+          email?: string
+          gender?: string | null
+          goal_type?: string | null
+          health_issues?: string[] | null
+          height?: number | null
+          id?: string
+          last_active_date?: string | null
+          streak_days?: number | null
+          updated_at?: string
+          weight?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
